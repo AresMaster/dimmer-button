@@ -62,6 +62,8 @@ class DimmerButton extends LitElement {
         this.mode = "brightness";
         this.displayState = '• '+(this.newValue != 0 ? this.newValue : (entity.state === "on" && entity.attributes.brightness ? Math.round(entity.attributes.brightness/2.55) : 0))+'%';
         this.rangeValue = entity.state === "on" ? Math.round(entity.attributes.brightness/2.55) : 0;
+        var root = document.querySelector(':root');
+        root.style.setProperty('--grayscale', (this.newValue != 0 ? this.newValue : (entity.state === "on" && entity.attributes.brightness ? Math.round(entity.attributes.brightness/2.55) : 0)));
       }else{
         this.mode = "toggle";
         this.displayState = '';
@@ -160,6 +162,8 @@ class DimmerButton extends LitElement {
     if(this.move){
       this.newValue = parseInt(e);
       this.requestUpdate();
+      var root = document.querySelector(':root');
+      root.style.setProperty('--grayscale', this.newValue);
     }
   }
 
@@ -224,6 +228,10 @@ class DimmerButton extends LitElement {
         this.hass.callService("homeassistant", "toggle", {
           entity_id: entity.entity_id    
         });
+        var root = document.querySelector(':root');
+        root.style.setProperty('--grayscale', Math.round(entity.attributes.brightness/2.55));
+        //console.log("_toggle");
+        //console.log(Math.round(entity.attributes.brightness/2.55));
         break;
       case "volume":
       case "pause":
@@ -244,6 +252,10 @@ class DimmerButton extends LitElement {
               entity_id: entity.entity_id,
               brightness: value * 2.55
           });
+          var root = document.querySelector(':root');
+          root.style.setProperty('--grayscale', Math.round(value));
+          //console.log("_setValue");
+          //console.log(Math.round(value));
           break;
         case "color_temp":
           num = Math.round(((entity.attributes.max_mireds-entity.attributes.min_mireds)*(value/100))+entity.attributes.min_mireds);
@@ -296,6 +308,9 @@ class DimmerButton extends LitElement {
   
   static get styles() {
     return css`
+        :root {
+            --grayscale: 0;
+        }
         ha-card {
           background: none;
         }
@@ -366,7 +381,8 @@ class DimmerButton extends LitElement {
           width: 100%;
           position: relative;
           background: var(--dimmer-background);
-          background-size: cover;
+          filter: grayscale(calc(calc(100 - var(--grayscale))/100));
+          background-size: 100% 100%;
           border-radius: var(--ha-card-border-radius);
           touch-action: var(--touch);
           overflow: hidden;
